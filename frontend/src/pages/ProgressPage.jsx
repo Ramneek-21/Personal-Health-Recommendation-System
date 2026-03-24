@@ -107,33 +107,36 @@ export default function ProgressPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <div className="space-y-6">
-          <TrendChart title="Weight history" data={chartData.weight} color="#1e6b58" />
-          <TrendChart title="Activity history" data={chartData.activity} color="#e27d47" mode="bar" />
-        </div>
-        <div className="space-y-6">
-          <TrendChart title="Sleep history" data={chartData.sleep} color="#5f8ebf" />
-
-          <section className="panel flex h-full flex-col justify-between p-6">
-            <div>
-              <p className="text-sm text-ink/60">Trend interpretation</p>
-              <h2 className="font-display text-3xl text-ink">Read the week without guessing.</h2>
-            </div>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-pine/10 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-pine">Entries logged</p>
-                <p className="mt-3 font-display text-4xl text-ink">{logs.length}</p>
-                <p className="mt-2 text-sm text-ink/60">Recent check-ins captured in your timeline.</p>
-              </div>
-              <div className="rounded-3xl bg-sky/10 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-sky">Latest entry</p>
-                <p className="mt-3 font-display text-2xl text-ink">{latestLogDate}</p>
-                <p className="mt-2 text-sm text-ink/60">Most recent logged recovery snapshot.</p>
-              </div>
-            </div>
-          </section>
-        </div>
+        <TrendChart title="Weight history" data={chartData.weight} color="#1e6b58" />
+        <TrendChart title="Sleep history" data={chartData.sleep} color="#5f8ebf" />
       </div>
+
+      <TrendChart title="Activity history" data={chartData.activity} color="#e27d47" mode="bar" />
+
+      <section className="panel relative z-10 p-6 lg:p-7">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+          <div>
+            <p className="text-sm text-ink/60">Trend interpretation</p>
+            <h2 className="font-display text-3xl text-ink">Read the week without guessing.</h2>
+            <p className="mt-4 max-w-xl text-sm text-ink/70">
+              Use your log count and most recent entry date to judge whether the charts reflect a real pattern
+              or just a thin sample week.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl bg-pine/10 p-5">
+              <p className="text-xs uppercase tracking-[0.2em] text-pine">Entries logged</p>
+              <p className="mt-3 font-display text-4xl text-ink">{logs.length}</p>
+              <p className="mt-2 text-sm text-ink/60">Recent check-ins captured in your timeline.</p>
+            </div>
+            <div className="rounded-3xl bg-sky/10 p-5">
+              <p className="text-xs uppercase tracking-[0.2em] text-sky">Latest entry</p>
+              <p className="mt-3 font-display text-2xl text-ink">{latestLogDate}</p>
+              <p className="mt-2 text-sm text-ink/60">Most recent logged recovery snapshot.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="panel p-6">
         <div className="mb-4">
