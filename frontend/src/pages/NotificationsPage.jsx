@@ -3,6 +3,12 @@ import { useEffect, useState } from "react";
 import { notificationsApi } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
+function inputClass(fieldError) {
+  return `field ${
+    fieldError ? "border-red-300 text-red-900 placeholder:text-red-400 focus:border-red-500" : ""
+  }`;
+}
+
 export default function NotificationsPage() {
   const { token } = useAuth();
   const [notifications, setNotifications] = useState([]);
@@ -13,6 +19,19 @@ export default function NotificationsPage() {
     scheduled_for: "",
   });
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const updateField = (name, value) => {
+    setForm((current) => ({ ...current, [name]: value }));
+    setFieldErrors((current) => {
+      if (!current[name]) {
+        return current;
+      }
+      const nextErrors = { ...current };
+      delete nextErrors[name];
+      return nextErrors;
+    });
+  };
 
   const loadNotifications = async () => {
     try {
@@ -30,6 +49,7 @@ export default function NotificationsPage() {
   const handleCreateReminder = async (event) => {
     event.preventDefault();
     setError("");
+    setFieldErrors({});
     try {
       await notificationsApi.createReminder(token, {
         ...form,
@@ -38,7 +58,8 @@ export default function NotificationsPage() {
       setForm({ title: "", message: "", type: "reminder", scheduled_for: "" });
       await loadNotifications();
     } catch (requestError) {
-      setError(requestError.message);
+      setFieldErrors(requestError.fieldErrors || {});
+      setError(Object.keys(requestError.fieldErrors || {}).length ? "" : requestError.message);
     }
   };
 
@@ -67,33 +88,45 @@ export default function NotificationsPage() {
           <p className="text-sm text-ink/60">Create reminder</p>
           <h2 className="font-display text-3xl text-ink">Schedule a wellness nudge</h2>
           <div className="mt-5 space-y-4">
-            <input
-              className="field"
-              placeholder="Title"
-              value={form.title}
-              onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-            />
-            <textarea
-              className="field"
-              rows="4"
-              placeholder="Message"
-              value={form.message}
-              onChange={(event) => setForm((current) => ({ ...current, message: event.target.value }))}
-            />
-            <select
-              className="field"
-              value={form.type}
-              onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}
-            >
-              <option value="reminder">Reminder</option>
-              <option value="health_alert">Health alert</option>
-            </select>
-            <input
-              className="field"
-              type="datetime-local"
-              value={form.scheduled_for}
-              onChange={(event) => setForm((current) => ({ ...current, scheduled_for: event.target.value }))}
-            />
+            <div>
+              <input
+                className={inputClass(fieldErrors.title)}
+                placeholder="Title"
+                value={form.title}
+                onChange={(event) => updateField("title", event.target.value)}
+              />
+              {fieldErrors.title ? <p className="mt-2 px-1 text-xs text-red-600">{fieldErrors.title}</p> : null}
+            </div>
+            <div>
+              <textarea
+                className={inputClass(fieldErrors.message)}
+                rows="4"
+                placeholder="Message"
+                value={form.message}
+                onChange={(event) => updateField("message", event.target.value)}
+              />
+              {fieldErrors.message ? (
+                <p className="mt-2 px-1 text-xs text-red-600">{fieldErrors.message}</p>
+              ) : null}
+            </div>
+            <div>
+              <select className={inputClass(fieldErrors.type)} value={form.type} onChange={(event) => updateField("type", event.target.value)}>
+                <option value="reminder">Reminder</option>
+                <option value="health_alert">Health alert</option>
+              </select>
+              {fieldErrors.type ? <p className="mt-2 px-1 text-xs text-red-600">{fieldErrors.type}</p> : null}
+            </div>
+            <div>
+              <input
+                className={inputClass(fieldErrors.scheduled_for)}
+                type="datetime-local"
+                value={form.scheduled_for}
+                onChange={(event) => updateField("scheduled_for", event.target.value)}
+              />
+              {fieldErrors.scheduled_for ? (
+                <p className="mt-2 px-1 text-xs text-red-600">{fieldErrors.scheduled_for}</p>
+              ) : null}
+            </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
             <button className="btn-primary w-full">Create reminder</button>
           </div>
