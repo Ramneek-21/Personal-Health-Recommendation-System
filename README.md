@@ -85,6 +85,20 @@ Optional:
 
 If `VITE_API_BASE_URL` is set, the frontend will call the backend directly. If it is not set, production deploys use the Netlify proxy automatically.
 
+## Backend Cloud Deploy
+
+The repository now includes a root [Dockerfile](/Users/Hrishikesh/Documents/New%20project/Dockerfile) so platforms that build from the repository root can deploy the FastAPI backend directly without changing the build context to `backend/`.
+
+Recommended backend environment variables:
+- `SECRET_KEY=<strong-random-secret>`
+- `DATABASE_URL=<your-postgres-connection-string>`
+- `CORS_ORIGINS=https://your-netlify-site.netlify.app`
+
+Notes:
+- If `DATABASE_URL` is not set, the backend falls back to SQLite so the service can still boot.
+- If your platform gives you a PostgreSQL URL like `postgresql://...` or `postgres://...`, the app now normalizes it automatically for the installed `psycopg` driver.
+- The Docker startup command now respects the platform-provided `PORT`.
+
 ## API Surface
 - `POST /api/v1/auth/signup`
 - `POST /api/v1/auth/login`
