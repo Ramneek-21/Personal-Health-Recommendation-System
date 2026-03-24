@@ -1,5 +1,6 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:8000/api/v1" : "/api/v1");
+const UNAUTHORIZED_EVENT = "pulsepilot:unauthorized";
 
 function normalizeErrorMessage(detail) {
   if (Array.isArray(detail)) {
@@ -25,6 +26,13 @@ async function request(path, { method = "GET", token, body } = {}) {
   const data = isJson ? await response.json() : null;
 
   if (!response.ok) {
+    if (response.status === 401 && token && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(UNAUTHORIZED_EVENT, {
+          detail: { path, message: normalizeErrorMessage(data?.detail) },
+        })
+      );
+    }
     const error = new Error(normalizeErrorMessage(data?.detail));
     error.status = response.status;
     throw error;
@@ -72,3 +80,5 @@ export const notificationsApi = {
   markRead: (token, notificationId) =>
     request(`/notifications/${notificationId}/read`, { method: "POST", token }),
 };
+
+export { UNAUTHORIZED_EVENT };

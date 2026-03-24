@@ -1,6 +1,6 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { authApi } from "../api/client";
+import { UNAUTHORIZED_EVENT, authApi } from "../api/client";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "pulsepilot-auth";
@@ -35,6 +35,42 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_KEY);
   };
 
+  useEffect(() => {
+    if (!authState.token) {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    authApi
+      .me(authState.token)
+      .then((user) => {
+        if (!isCancelled) {
+          persist({ token: authState.token, user });
+        }
+      })
+      .catch((error) => {
+        if (!isCancelled && error?.status === 401) {
+          logout();
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [authState.token]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    };
+  }, []);
+
   const value = useMemo(
     () => ({
       token: authState.token,
@@ -57,4 +93,3 @@ export function useAuth() {
   }
   return context;
 }
-
