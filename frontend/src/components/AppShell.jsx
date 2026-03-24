@@ -10,6 +10,7 @@ const navigation = [
 
 export default function AppShell({ children }) {
   const { user, logout } = useAuth();
+  const accountLabel = user?.full_name || user?.email || "Account";
 
   return (
     <div className="min-h-screen bg-hero-glow">
@@ -41,7 +42,10 @@ export default function AppShell({ children }) {
 
           <div className="rounded-2xl bg-ink px-4 py-4 text-white">
             <p className="text-xs uppercase tracking-[0.2em] text-white/60">Signed in as</p>
-            <p className="mt-2 font-display text-xl">{user?.full_name}</p>
+            <p className="mt-2 break-words font-display text-lg leading-tight sm:text-xl">{accountLabel}</p>
+            {user?.email && user.full_name ? (
+              <p className="mt-2 break-all text-xs text-white/70">{user.email}</p>
+            ) : null}
             <button onClick={logout} className="mt-4 text-sm text-white/80 underline">
               Log out
             </button>
@@ -53,4 +57,3 @@ export default function AppShell({ children }) {
     </div>
   );
 }
-

@@ -25,6 +25,8 @@ export default function DashboardPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingLog, setSavingLog] = useState(false);
   const [error, setError] = useState("");
+  const [profileErrors, setProfileErrors] = useState({});
+  const [logErrors, setLogErrors] = useState({});
 
   const chartData = useMemo(
     () => ({
@@ -72,12 +74,14 @@ export default function DashboardPage() {
   const handleProfileSubmit = async (payload) => {
     setSavingProfile(true);
     setError("");
+    setProfileErrors({});
     try {
       await profileApi.upsert(token, payload);
       await recommendationsApi.generate(token);
       await loadDashboard();
     } catch (requestError) {
-      setError(requestError.message);
+      setProfileErrors(requestError.fieldErrors || {});
+      setError(Object.keys(requestError.fieldErrors || {}).length ? "" : requestError.message);
     } finally {
       setSavingProfile(false);
     }
@@ -86,12 +90,14 @@ export default function DashboardPage() {
   const handleDailyLogSubmit = async (payload) => {
     setSavingLog(true);
     setError("");
+    setLogErrors({});
     try {
       await logsApi.create(token, payload);
       await recommendationsApi.generate(token);
       await loadDashboard();
     } catch (requestError) {
-      setError(requestError.message);
+      setLogErrors(requestError.fieldErrors || {});
+      setError(Object.keys(requestError.fieldErrors || {}).length ? "" : requestError.message);
     } finally {
       setSavingLog(false);
     }
@@ -163,7 +169,12 @@ export default function DashboardPage() {
       </section>
 
       {!profile ? (
-        <HealthProfileForm onSubmit={handleProfileSubmit} loading={savingProfile} />
+        <HealthProfileForm
+          fieldErrors={profileErrors}
+          onSubmit={handleProfileSubmit}
+          loading={savingProfile}
+          onInteract={() => setProfileErrors({})}
+        />
       ) : (
         <>
           <div className="grid gap-6 xl:grid-cols-[0.7fr_1.3fr]">
@@ -188,7 +199,12 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 2xl:grid-cols-[1fr_0.95fr]">
             <div className="space-y-6">
-              <DailyLogForm onSubmit={handleDailyLogSubmit} loading={savingLog} />
+              <DailyLogForm
+                fieldErrors={logErrors}
+                onSubmit={handleDailyLogSubmit}
+                loading={savingLog}
+                onInteract={() => setLogErrors({})}
+              />
               <div className="grid gap-6 lg:grid-cols-2">
                 <TrendChart title="Weight Trend" data={chartData.weight} color="#1e6b58" />
                 <TrendChart title="Sleep Trend" data={chartData.sleep} color="#5f8ebf" />
@@ -231,8 +247,10 @@ export default function DashboardPage() {
           <HealthProfileForm
             key={profile.updated_at}
             defaultValues={profile}
+            fieldErrors={profileErrors}
             onSubmit={handleProfileSubmit}
             loading={savingProfile}
+            onInteract={() => setProfileErrors({})}
           />
         </>
       )}

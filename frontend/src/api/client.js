@@ -2,6 +2,30 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://localhost:8000/api/v1" : "/api/v1");
 const UNAUTHORIZED_EVENT = "pulsepilot:unauthorized";
 
+function extractFieldErrors(detail) {
+  if (!Array.isArray(detail)) {
+    return {};
+  }
+
+  return detail.reduce((errors, item) => {
+    const segments = Array.isArray(item.loc)
+      ? item.loc.filter(
+          (segment) => typeof segment === "string" && !["body", "query", "path"].includes(segment)
+        )
+      : [];
+    const field = segments[segments.length - 1];
+
+    if (!field) {
+      return errors;
+    }
+
+    return {
+      ...errors,
+      [field]: errors[field] ? `${errors[field]} ${item.msg || "Invalid input"}` : item.msg || "Invalid input",
+    };
+  }, {});
+}
+
 function normalizeErrorMessage(detail) {
   if (Array.isArray(detail)) {
     return detail.map((item) => item.msg || "Invalid input").join(" ");
@@ -35,6 +59,7 @@ async function request(path, { method = "GET", token, body } = {}) {
     }
     const error = new Error(normalizeErrorMessage(data?.detail));
     error.status = response.status;
+    error.fieldErrors = extractFieldErrors(data?.detail);
     throw error;
   }
 

@@ -6,6 +6,12 @@ import { useAuth } from "../context/AuthContext";
 const initialSignup = { full_name: "", email: "", password: "" };
 const initialLogin = { email: "", password: "" };
 
+function inputClass(fieldError) {
+  return `field ${
+    fieldError ? "border-red-300 text-red-900 placeholder:text-red-400 focus:border-red-500" : ""
+  }`;
+}
+
 export default function AuthPage() {
   const navigate = useNavigate();
   const { login, signup } = useAuth();
@@ -14,16 +20,53 @@ export default function AuthPage() {
   const [loginForm, setLoginForm] = useState(initialLogin);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [signupErrors, setSignupErrors] = useState({});
+  const [loginErrors, setLoginErrors] = useState({});
+
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
+    setError("");
+    setSignupErrors({});
+    setLoginErrors({});
+  };
+
+  const updateSignupField = (event) => {
+    const { name, value } = event.target;
+    setSignupForm((current) => ({ ...current, [name]: value }));
+    setSignupErrors((current) => {
+      if (!current[name]) {
+        return current;
+      }
+      const nextErrors = { ...current };
+      delete nextErrors[name];
+      return nextErrors;
+    });
+  };
+
+  const updateLoginField = (event) => {
+    const { name, value } = event.target;
+    setLoginForm((current) => ({ ...current, [name]: value }));
+    setLoginErrors((current) => {
+      if (!current[name]) {
+        return current;
+      }
+      const nextErrors = { ...current };
+      delete nextErrors[name];
+      return nextErrors;
+    });
+  };
 
   const handleSignup = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setSignupErrors({});
     try {
       await signup(signupForm);
       navigate("/");
     } catch (requestError) {
-      setError(requestError.message);
+      setSignupErrors(requestError.fieldErrors || {});
+      setError(Object.keys(requestError.fieldErrors || {}).length ? "" : requestError.message);
     } finally {
       setLoading(false);
     }
@@ -33,11 +76,13 @@ export default function AuthPage() {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setLoginErrors({});
     try {
       await login(loginForm);
       navigate("/");
     } catch (requestError) {
-      setError(requestError.message);
+      setLoginErrors(requestError.fieldErrors || {});
+      setError(Object.keys(requestError.fieldErrors || {}).length ? "" : requestError.message);
     } finally {
       setLoading(false);
     }
@@ -78,7 +123,7 @@ export default function AuthPage() {
               className={`flex-1 rounded-2xl px-4 py-3 text-sm font-medium ${
                 mode === "signup" ? "bg-ink text-white" : "text-ink/70"
               }`}
-              onClick={() => setMode("signup")}
+              onClick={() => switchMode("signup")}
             >
               Create account
             </button>
@@ -86,7 +131,7 @@ export default function AuthPage() {
               className={`flex-1 rounded-2xl px-4 py-3 text-sm font-medium ${
                 mode === "login" ? "bg-ink text-white" : "text-ink/70"
               }`}
-              onClick={() => setMode("login")}
+              onClick={() => switchMode("login")}
             >
               Log in
             </button>
@@ -98,26 +143,44 @@ export default function AuthPage() {
                 <p className="text-sm text-ink/60">Get started</p>
                 <h2 className="font-display text-4xl text-ink">Create your health workspace</h2>
               </div>
-              <input
-                className="field"
-                placeholder="Full name"
-                value={signupForm.full_name}
-                onChange={(event) => setSignupForm((current) => ({ ...current, full_name: event.target.value }))}
-              />
-              <input
-                className="field"
-                type="email"
-                placeholder="Email"
-                value={signupForm.email}
-                onChange={(event) => setSignupForm((current) => ({ ...current, email: event.target.value }))}
-              />
-              <input
-                className="field"
-                type="password"
-                placeholder="Password"
-                value={signupForm.password}
-                onChange={(event) => setSignupForm((current) => ({ ...current, password: event.target.value }))}
-              />
+              <div>
+                <input
+                  className={inputClass(signupErrors.full_name)}
+                  name="full_name"
+                  placeholder="Full name"
+                  value={signupForm.full_name}
+                  onChange={updateSignupField}
+                />
+                {signupErrors.full_name ? (
+                  <p className="mt-2 px-1 text-xs text-red-600">{signupErrors.full_name}</p>
+                ) : null}
+              </div>
+              <div>
+                <input
+                  className={inputClass(signupErrors.email)}
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  value={signupForm.email}
+                  onChange={updateSignupField}
+                />
+                {signupErrors.email ? (
+                  <p className="mt-2 px-1 text-xs text-red-600">{signupErrors.email}</p>
+                ) : null}
+              </div>
+              <div>
+                <input
+                  className={inputClass(signupErrors.password)}
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  value={signupForm.password}
+                  onChange={updateSignupField}
+                />
+                {signupErrors.password ? (
+                  <p className="mt-2 px-1 text-xs text-red-600">{signupErrors.password}</p>
+                ) : null}
+              </div>
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <button disabled={loading} className="btn-primary w-full">
                 {loading ? "Creating..." : "Create account"}
@@ -129,20 +192,32 @@ export default function AuthPage() {
                 <p className="text-sm text-ink/60">Welcome back</p>
                 <h2 className="font-display text-4xl text-ink">Continue your routine</h2>
               </div>
-              <input
-                className="field"
-                type="email"
-                placeholder="Email"
-                value={loginForm.email}
-                onChange={(event) => setLoginForm((current) => ({ ...current, email: event.target.value }))}
-              />
-              <input
-                className="field"
-                type="password"
-                placeholder="Password"
-                value={loginForm.password}
-                onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
-              />
+              <div>
+                <input
+                  className={inputClass(loginErrors.email)}
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  value={loginForm.email}
+                  onChange={updateLoginField}
+                />
+                {loginErrors.email ? (
+                  <p className="mt-2 px-1 text-xs text-red-600">{loginErrors.email}</p>
+                ) : null}
+              </div>
+              <div>
+                <input
+                  className={inputClass(loginErrors.password)}
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  value={loginForm.password}
+                  onChange={updateLoginField}
+                />
+                {loginErrors.password ? (
+                  <p className="mt-2 px-1 text-xs text-red-600">{loginErrors.password}</p>
+                ) : null}
+              </div>
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <button disabled={loading} className="btn-primary w-full">
                 {loading ? "Signing in..." : "Log in"}
@@ -154,4 +229,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
