@@ -13,9 +13,9 @@ export default function AppShell({ children }) {
   const accountLabel = user?.full_name || user?.email || "Account";
 
   return (
-    <div className="min-h-screen bg-hero-glow">
-      <div className="mx-auto grid min-h-screen max-w-7xl gap-6 px-4 py-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="panel flex h-fit flex-col gap-8 p-6">
+    <div className="min-h-screen overflow-x-clip bg-hero-glow">
+      <div className="mx-auto grid min-h-screen max-w-[1560px] gap-6 px-4 py-5 lg:grid-cols-[280px_minmax(0,1fr)] xl:gap-8 xl:px-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="panel flex h-fit flex-col gap-8 p-6 lg:sticky lg:top-5">
           <div>
             <p className="font-display text-xs uppercase tracking-[0.35em] text-pine">PulsePilot</p>
             <h1 className="mt-3 font-display text-3xl text-ink">Health OS for your routine.</h1>
@@ -52,7 +52,7 @@ export default function AppShell({ children }) {
           </div>
         </aside>
 
-        <main className="space-y-6">{children}</main>
+        <main className="min-w-0 space-y-6">{children}</main>
       </div>
     </div>
   );

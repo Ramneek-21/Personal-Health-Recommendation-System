@@ -52,7 +52,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <section className="panel px-6 py-8">
         <p className="text-sm uppercase tracking-[0.25em] text-pine">Notifications</p>
         <h1 className="mt-3 font-display text-4xl text-ink">Manage reminders and health alerts.</h1>

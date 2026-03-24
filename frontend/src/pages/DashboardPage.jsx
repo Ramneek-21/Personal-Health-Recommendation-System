@@ -129,7 +129,7 @@ export default function DashboardPage() {
   const recommendation = summary?.latest_recommendation;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <section className="panel overflow-hidden px-6 py-8 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>

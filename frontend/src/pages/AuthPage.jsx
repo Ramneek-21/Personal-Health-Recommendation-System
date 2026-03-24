@@ -89,35 +89,35 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-hero-glow px-4 py-5">
-      <div className="mx-auto grid min-h-[calc(100vh-2.5rem)] max-w-6xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="panel flex flex-col justify-between overflow-hidden p-8 lg:p-12">
+    <div className="min-h-screen overflow-x-clip bg-hero-glow px-4 py-4 sm:py-5">
+      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-6xl gap-4 sm:gap-6 lg:min-h-[calc(100vh-2.5rem)] lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="panel order-2 flex flex-col justify-between overflow-hidden p-6 sm:p-8 lg:order-1 lg:p-10 xl:p-12">
           <div>
             <p className="font-display text-xs uppercase tracking-[0.35em] text-pine">PulsePilot</p>
-            <h1 className="mt-6 max-w-xl font-display text-5xl leading-tight text-ink">
+            <h1 className="mt-5 max-w-xl font-display text-4xl leading-tight text-ink sm:mt-6 sm:text-5xl">
               Personalized health recommendations that adapt to your life.
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-ink/75">
+            <p className="mt-5 max-w-xl text-base text-ink/75 sm:mt-6 sm:text-lg">
               Get weekly health scoring, risk signals, exercise and nutrition guidance, sleep coaching,
               habit streaks, and a single dashboard for your personal wellness system.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
             {[
               ["Daily logs", "Track sleep, hydration, weight, activity, and stress in under a minute."],
               ["Smart guidance", "Rule-based recommendations tuned to your goals and current risk signals."],
               ["Progress over time", "Monitor charts, streaks, and weekly insights without spreadsheet work."],
             ].map(([title, description]) => (
-              <div key={title} className="rounded-3xl border border-white/50 bg-white/70 p-5">
-                <h2 className="font-display text-2xl text-ink">{title}</h2>
-                <p className="mt-3 text-sm text-ink/70">{description}</p>
+              <div key={title} className="rounded-3xl border border-white/50 bg-white/70 p-4 sm:p-5">
+                <h2 className="font-display text-xl text-ink sm:text-2xl">{title}</h2>
+                <p className="mt-2 text-sm text-ink/70 sm:mt-3">{description}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="panel flex flex-col justify-center p-8 lg:p-10">
+        <section className="panel order-1 flex flex-col justify-center p-6 sm:p-8 lg:order-2 lg:p-10">
           <div className="mb-6 flex rounded-2xl bg-white/70 p-2">
             <button
               className={`flex-1 rounded-2xl px-4 py-3 text-sm font-medium ${
@@ -141,7 +141,7 @@ export default function AuthPage() {
             <form className="space-y-4" onSubmit={handleSignup}>
               <div>
                 <p className="text-sm text-ink/60">Get started</p>
-                <h2 className="font-display text-4xl text-ink">Create your health workspace</h2>
+                <h2 className="font-display text-3xl text-ink sm:text-4xl">Create your health workspace</h2>
               </div>
               <div>
                 <input
@@ -190,7 +190,7 @@ export default function AuthPage() {
             <form className="space-y-4" onSubmit={handleLogin}>
               <div>
                 <p className="text-sm text-ink/60">Welcome back</p>
-                <h2 className="font-display text-4xl text-ink">Continue your routine</h2>
+                <h2 className="font-display text-3xl text-ink sm:text-4xl">Continue your routine</h2>
               </div>
               <div>
                 <input
