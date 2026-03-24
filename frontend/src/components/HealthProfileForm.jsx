@@ -1,17 +1,17 @@
 import { useMemo, useState } from "react";
 
 const initialState = {
-  age: 30,
-  gender: "female",
-  height_cm: 170,
-  weight_kg: 70,
+  age: "",
+  gender: "",
+  height_cm: "",
+  weight_kg: "",
   medical_conditions: "",
-  diet_type: "balanced",
-  activity_level: "light",
-  sleep_hours: 7,
-  water_intake_liters: 2.2,
-  stress_level: 5,
-  goal: "general_fitness",
+  diet_type: "",
+  activity_level: "",
+  sleep_hours: "",
+  water_intake_liters: "",
+  stress_level: "",
+  goal: "",
 };
 
 export default function HealthProfileForm({ defaultValues, onSubmit, loading }) {
