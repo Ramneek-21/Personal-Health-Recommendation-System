@@ -18,6 +18,7 @@ function copyRequestHeaders(requestHeaders, requestUrl) {
 
   headers.delete("host");
   headers.delete("content-length");
+  headers.set("accept-encoding", "identity");
   headers.set("x-forwarded-host", incomingUrl.host);
   headers.set("x-forwarded-proto", incomingUrl.protocol.replace(":", ""));
 
@@ -52,8 +53,16 @@ export default async function handler(request) {
 
     const headers = new Headers(upstreamResponse.headers);
     headers.delete("content-length");
+    headers.delete("content-encoding");
+    headers.delete("transfer-encoding");
+    headers.delete("connection");
+    headers.delete("keep-alive");
+    headers.delete("server");
 
-    return new Response(upstreamResponse.body, {
+    const responseBody =
+      method === "HEAD" ? undefined : await upstreamResponse.arrayBuffer();
+
+    return new Response(responseBody, {
       status: upstreamResponse.status,
       statusText: upstreamResponse.statusText,
       headers,
@@ -69,4 +78,3 @@ export default async function handler(request) {
 export const config = {
   path: "/api/*",
 };
-
