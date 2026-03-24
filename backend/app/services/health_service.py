@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Optional
 
 from sqlalchemy import desc, select
@@ -9,6 +9,11 @@ from sqlalchemy.orm import Session
 
 from app.models.health import DailyLog, HabitCheck, HealthProfile, Notification, Recommendation
 from app.services.recommendation_engine import DEFAULT_CHECKLIST, generate_recommendation
+
+DEFAULT_WEEKLY_HEALTH_ALERT_TITLE = "Weekly health alert"
+DEFAULT_NO_RISK_FLAGS_MESSAGE = (
+    "No major risk flags were detected. Continue building consistency and monitor weekly trends."
+)
 
 
 def _streak_days(habit_checks: list[HabitCheck], today: Optional[date] = None) -> int:
@@ -23,6 +28,53 @@ def _streak_days(habit_checks: list[HabitCheck], today: Optional[date] = None) -
         streak += 1
         cursor -= timedelta(days=1)
     return streak
+
+
+def _alert_window(week_start: date) -> tuple[datetime, datetime]:
+    start = datetime.combine(week_start, time.min)
+    end = start + timedelta(days=7)
+    return start, end
+
+
+def _weekly_health_alert_message(risk_warnings: list[str]) -> Optional[str]:
+    warnings = [warning for warning in risk_warnings if warning and warning != DEFAULT_NO_RISK_FLAGS_MESSAGE]
+    if not warnings:
+        return None
+    return " ".join(warnings[:2])
+
+
+def cleanup_weekly_health_alerts(db: Session, user_id: int) -> bool:
+    alerts = db.scalars(
+        select(Notification)
+        .where(
+            Notification.user_id == user_id,
+            Notification.type == "health_alert",
+            Notification.title == DEFAULT_WEEKLY_HEALTH_ALERT_TITLE,
+        )
+        .order_by(desc(Notification.created_at), desc(Notification.id))
+    ).all()
+
+    duplicates: list[Notification] = []
+    stale_alerts: list[Notification] = []
+    seen_weeks: set[date] = set()
+
+    for alert in alerts:
+        if alert.message == DEFAULT_NO_RISK_FLAGS_MESSAGE:
+            stale_alerts.append(alert)
+            continue
+
+        week_key = current_week_start(alert.created_at.date())
+        if week_key in seen_weeks:
+            duplicates.append(alert)
+            continue
+        seen_weeks.add(week_key)
+
+    for duplicate in duplicates:
+        db.delete(duplicate)
+    for stale_alert in stale_alerts:
+        db.delete(stale_alert)
+
+    return bool(duplicates or stale_alerts)
 
 
 def generate_and_store_recommendation(db: Session, user_id: int) -> Recommendation:
@@ -49,15 +101,43 @@ def generate_and_store_recommendation(db: Session, user_id: int) -> Recommendati
     )
     db.add(recommendation)
 
-    if recommendation.risk_level in {"moderate", "high"}:
-        db.add(
-            Notification(
-                user_id=user_id,
-                title="Weekly health alert",
-                message=" ".join(recommendation.risk_warnings[:2]),
-                type="health_alert",
-            )
+    cleanup_weekly_health_alerts(db, user_id)
+
+    alert_message = _weekly_health_alert_message(recommendation.risk_warnings)
+    window_start, window_end = _alert_window(recommendation.week_start)
+    existing_weekly_alerts = db.scalars(
+        select(Notification)
+        .where(
+            Notification.user_id == user_id,
+            Notification.type == "health_alert",
+            Notification.title == DEFAULT_WEEKLY_HEALTH_ALERT_TITLE,
+            Notification.created_at >= window_start,
+            Notification.created_at < window_end,
         )
+        .order_by(desc(Notification.created_at), desc(Notification.id))
+    ).all()
+
+    if alert_message:
+        primary_alert = existing_weekly_alerts[0] if existing_weekly_alerts else None
+        if primary_alert is None:
+            db.add(
+                Notification(
+                    user_id=user_id,
+                    title=DEFAULT_WEEKLY_HEALTH_ALERT_TITLE,
+                    message=alert_message,
+                    type="health_alert",
+                )
+            )
+        else:
+            if primary_alert.message != alert_message:
+                primary_alert.message = alert_message
+                primary_alert.is_read = False
+
+        for duplicate in existing_weekly_alerts[1:]:
+            db.delete(duplicate)
+    else:
+        for stale_alert in existing_weekly_alerts:
+            db.delete(stale_alert)
 
     db.commit()
     db.refresh(recommendation)

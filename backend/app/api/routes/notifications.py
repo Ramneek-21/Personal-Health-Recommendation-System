@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.health import Notification, User
 from app.schemas.health import NotificationCreate, NotificationResponse
+from app.services.health_service import cleanup_weekly_health_alerts
 
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -14,6 +15,9 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 def list_notifications(
     current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> list[NotificationResponse]:
+    if cleanup_weekly_health_alerts(db, current_user.id):
+        db.commit()
+
     notifications = db.scalars(
         select(Notification).where(Notification.user_id == current_user.id).order_by(Notification.created_at.desc())
     ).all()

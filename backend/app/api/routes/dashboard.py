@@ -6,7 +6,12 @@ from app.api.deps import get_current_user, get_db
 from app.models.health import DailyLog, HabitCheck, HealthProfile, Notification, User
 from app.schemas.dashboard import DashboardSummary, TrendPoint, TrendsResponse, WeeklyInsights
 from app.schemas.health import HabitItem, NotificationResponse, RecommendationResponse
-from app.services.health_service import build_habit_items, ensure_latest_recommendation, get_streak_days
+from app.services.health_service import (
+    build_habit_items,
+    cleanup_weekly_health_alerts,
+    ensure_latest_recommendation,
+    get_streak_days,
+)
 from app.services.recommendation_engine import summarize_logs
 
 
@@ -15,6 +20,9 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/summary", response_model=DashboardSummary)
 def summary(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> DashboardSummary:
+    if cleanup_weekly_health_alerts(db, current_user.id):
+        db.commit()
+
     profile = db.scalar(select(HealthProfile).where(HealthProfile.user_id == current_user.id))
     logs = db.scalars(select(DailyLog).where(DailyLog.user_id == current_user.id).order_by(DailyLog.logged_at)).all()
     habit_checks = db.scalars(select(HabitCheck).where(HabitCheck.user_id == current_user.id)).all()

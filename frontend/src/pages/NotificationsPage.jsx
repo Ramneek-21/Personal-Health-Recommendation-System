@@ -53,7 +53,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-w-0 space-y-6">
-      <section className="panel px-6 py-8">
+      <section className="panel overflow-hidden px-6 py-8 lg:px-8">
         <p className="text-sm uppercase tracking-[0.25em] text-pine">Notifications</p>
         <h1 className="mt-3 font-display text-4xl text-ink">Manage reminders and health alerts.</h1>
         <p className="mt-4 max-w-2xl text-base text-ink/70">
@@ -62,8 +62,8 @@ export default function NotificationsPage() {
         </p>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <form onSubmit={handleCreateReminder} className="panel p-6">
+      <div className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <form onSubmit={handleCreateReminder} className="panel self-start p-6 xl:sticky xl:top-5">
           <p className="text-sm text-ink/60">Create reminder</p>
           <h2 className="font-display text-3xl text-ink">Schedule a wellness nudge</h2>
           <div className="mt-5 space-y-4">
@@ -99,37 +99,59 @@ export default function NotificationsPage() {
           </div>
         </form>
 
-        <section className="panel p-6">
-          <p className="text-sm text-ink/60">Inbox</p>
-          <h2 className="font-display text-3xl text-ink">Recent alerts</h2>
-          <div className="mt-5 space-y-4">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`rounded-3xl border px-5 py-5 ${
-                  notification.is_read ? "border-ink/10 bg-white/70" : "border-ember/25 bg-ember/10"
-                }`}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-ink/60">{notification.type}</p>
-                    <h3 className="mt-2 font-display text-2xl text-ink">{notification.title}</h3>
-                    <p className="mt-2 text-sm text-ink/70">{notification.message}</p>
-                    <p className="mt-3 text-xs text-ink/50">
-                      {notification.scheduled_for
-                        ? new Date(notification.scheduled_for).toLocaleString()
-                        : new Date(notification.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  {!notification.is_read ? (
-                    <button className="btn-secondary" onClick={() => handleMarkRead(notification.id)}>
-                      Mark read
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ))}
+        <section className="panel min-w-0 p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm text-ink/60">Inbox</p>
+              <h2 className="font-display text-3xl text-ink">Recent alerts</h2>
+            </div>
+            <div className="rounded-2xl bg-ink px-4 py-3 text-white">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/60">Unread</p>
+              <p className="font-display text-3xl">{notifications.filter((item) => !item.is_read).length}</p>
+            </div>
           </div>
+
+          {notifications.length ? (
+            <div className="mt-5 space-y-4">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`rounded-3xl border px-5 py-5 ${
+                    notification.is_read ? "border-ink/10 bg-white/70" : "border-ember/25 bg-ember/10"
+                  }`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs uppercase tracking-[0.2em] text-ink/60">{notification.type}</p>
+                      <h3 className="mt-2 break-words font-display text-2xl text-ink">{notification.title}</h3>
+                      <p className="mt-2 break-words text-sm text-ink/70">{notification.message}</p>
+                      <p className="mt-3 text-xs text-ink/50">
+                        {notification.scheduled_for
+                          ? new Date(notification.scheduled_for).toLocaleString()
+                          : new Date(notification.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    {!notification.is_read ? (
+                      <button
+                        type="button"
+                        className="btn-secondary shrink-0"
+                        onClick={() => handleMarkRead(notification.id)}
+                      >
+                        Mark read
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-3xl border border-dashed border-ink/15 bg-white/60 px-5 py-8 text-center">
+              <p className="font-display text-2xl text-ink">No notifications yet</p>
+              <p className="mt-2 text-sm text-ink/60">
+                Create a reminder or generate recommendations to populate your inbox.
+              </p>
+            </div>
+          )}
         </section>
       </div>
     </div>

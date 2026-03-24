@@ -209,7 +209,6 @@ export default function DashboardPage() {
                 <TrendChart title="Weight Trend" data={chartData.weight} color="#1e6b58" />
                 <TrendChart title="Sleep Trend" data={chartData.sleep} color="#5f8ebf" />
               </div>
-              <TrendChart title="Activity Minutes" data={chartData.activity} color="#e27d47" mode="bar" />
             </div>
 
             <div className="space-y-6">
@@ -222,6 +221,8 @@ export default function DashboardPage() {
               />
             </div>
           </div>
+
+          <TrendChart title="Activity Minutes" data={chartData.activity} color="#e27d47" mode="bar" />
 
           <div className="grid gap-6 lg:grid-cols-3">
             <RecommendationSection
