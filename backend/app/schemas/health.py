@@ -1,7 +1,7 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 
 class HealthProfileBase(BaseModel):
@@ -78,6 +78,14 @@ class NotificationResponse(NotificationCreate):
     id: int
     is_read: bool
     created_at: datetime
+
+    @field_serializer("scheduled_for", "created_at", when_used="json")
+    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.isoformat()
 
 
 class HabitCheckRequest(BaseModel):
